@@ -1,7 +1,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List
+from datetime import datetime, date
+from typing import Dict, List, Optional
 
 
 class Owner:
@@ -60,7 +61,9 @@ class Task:
     duration: int
     priority: int
     recurring: bool
-    time_slot: str
+    pet_name: str
+    time_slot: Optional[datetime] = None
+    due_date: Optional[date] = None
     completed: bool = False
 
     def mark_complete(self) -> None:
@@ -69,19 +72,23 @@ class Task:
 
     def is_overdue(self) -> bool:
         """Return whether this task is overdue."""
-        return False
+        if self.completed or self.due_date is None:
+            return False
+        return date.today() > self.due_date
 
 
 class Scheduler:
     """Generates and explains a pet care plan for an owner."""
 
-    def __init__(self, owner: Owner, tasks: List[Task] | None = None) -> None:
+    def __init__(self, owner: Owner, tasks: List[Task] | None = None, planning_date: Optional[date] = None) -> None:
         self.owner = owner
         self.tasks = tasks or []
+        self.planning_date = planning_date or date.today()
         self.daily_plan: Dict[str, List[Task]] = {}
 
     def generate_plan(self) -> None:
         """Generate a daily care plan based on owner availability and tasks."""
+        self.tasks = [task for pet in self.owner.get_pets() for task in pet.get_tasks()]
         self.daily_plan = {}
 
     def detect_conflicts(self) -> List[Task]:

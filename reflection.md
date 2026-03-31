@@ -5,16 +5,30 @@
 **a. Initial design**
 
 Three core actions a user should be able to perform:
-
 1. Add a pet — The user can enter basic pet info like name, species, age, and any special needs.
 2. Schedule a task — The user can add care tasks like walks, feeding, medications, grooming, and enrichment with a duration and priority level.
 3. Generate a daily plan — The system creates a daily schedule based on task priorities, time constraints, and owner preferences, and explains why tasks were ordered that way.
 
+Initial UML Design:
+I designed four classes for PawPal+:
+
+1. Owner — Represents the pet owner. Holds their name, available time per day, and preferences. Responsible for managing their list of pets (add, remove, get pets).
+2. Pet — Represents a pet using a Python dataclass. Holds name, species, age, and special needs. Responsible for managing its own tasks (add, remove, get tasks).
+3. Task — Represents a care task using a Python dataclass. Holds name, task type (walk, feeding, meds, etc.), duration, priority, whether it's recurring, and a time slot. Can be marked complete and checked if overdue.
+4. Scheduler — The brain of the system. Takes an Owner and their tasks, then generates a daily plan by sorting tasks by priority, detecting conflicts, and explaining the reasoning behind the schedule.
+Relationships: An Owner owns many Pets, each Pet has many Tasks, and the Scheduler manages Tasks for one Owner.
+
 **b. Design changes**
 
-- Did your design change during implementation?
-- If yes, describe at least one change and why you made it.
+After asking Copilot to review my class skeleton, I made several changes:
 
+1. Added a pet_name attribute to Task so each task knows which pet it belongs to.
+2. Changed time_slot from a plain string to an optional datetime field for more reliable scheduling and conflict detection.
+3. Added a due_date attribute to Task so the is_overdue() method can work with real dates.
+4. Added a planning_date attribute to Scheduler to give context for daily plan generation.
+5. Updated generate_plan() to automatically gather tasks from the owner's pets instead of requiring tasks to be passed in manually.
+
+These changes were made because Copilot pointed out that the original skeleton had weak connections between classes and lacked proper date handling for scheduling.
 ---
 
 ## 2. Scheduling Logic and Tradeoffs
