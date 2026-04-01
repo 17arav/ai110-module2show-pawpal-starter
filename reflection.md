@@ -75,7 +75,7 @@ These changes were made because Copilot pointed out that the original skeleton h
 
 **b. What you would improve**
 
-- If I had another iteration, I would add the ability to edit and delete tasks from the UI, add persistent storage so data isn't lost on refresh, and improve the conflict detection to suggest alternative times instead of just warning about overlaps.
+- If I had another iteration, I would add the ability to edit and delete tasks from the UI, add user authentication so multiple owners can use the app, and improve the conflict detection to suggest alternative times instead of just warning about overlaps.
 
 **c. Key takeaway**
 

@@ -6,6 +6,9 @@ st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 if "owner" not in st.session_state:
     st.session_state.owner = None
 
+if "scheduler" not in st.session_state:
+    st.session_state.scheduler = None
+    
 import os
 
 # Auto-load saved data on startup
