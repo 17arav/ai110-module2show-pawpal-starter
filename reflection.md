@@ -47,13 +47,11 @@ These changes were made because Copilot pointed out that the original skeleton h
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+- I used GitHub Copilot and Claude throughout this project. For design brainstorming, I asked Copilot to generate a Mermaid.js UML diagram based on my class ideas. For implementation, I used Copilot's Agent Mode to flesh out class skeletons into full working code. For testing, I used Copilot to generate pytest cases covering sorting, recurring tasks, and conflict detection. The most helpful prompts were specific ones that referenced files directly using #file:pawpal_system.py and gave clear numbered instructions for what to implement.
 
 **b. Judgment and verification**
 
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+- When Copilot first generated the class skeletons, it didn't include a pet_name attribute on Task or proper date handling for scheduling. I didn't accept the initial design as-is — instead I asked Copilot to review its own output and it suggested adding pet_name, changing time_slot to datetime, and adding due_date. I verified these changes by running the CLI demo script and checking that tasks correctly linked to pets and the scheduler could detect time conflicts.
 
 ---
 
@@ -73,12 +71,12 @@ These changes were made because Copilot pointed out that the original skeleton h
 
 **a. What went well**
 
-- What part of this project are you most satisfied with?
+- I'm most satisfied with the scheduling logic. The Scheduler class cleanly gathers tasks from pets, sorts by priority or time, detects conflicts, and explains its reasoning. The CLI demo script was especially helpful for verifying everything worked before connecting it to the UI.
 
 **b. What you would improve**
 
-- If you had another iteration, what would you improve or redesign?
+- If I had another iteration, I would add the ability to edit and delete tasks from the UI, add persistent storage so data isn't lost on refresh, and improve the conflict detection to suggest alternative times instead of just warning about overlaps.
 
 **c. Key takeaway**
 
-- What is one important thing you learned about designing systems or working with AI on this project?
+- I learned that AI is a powerful coding partner, but I need to stay in the driver's seat. AI-generated code often needs human review — like when the initial skeletons were missing key attributes. The best workflow is to design first, use AI to scaffold and implement, then carefully verify the output before moving on.

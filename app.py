@@ -75,8 +75,14 @@ else:
         duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=30)
         priority = st.slider("Priority (1=low, 5=high)", min_value=1, max_value=5, value=3)
         recurring = st.checkbox("Recurring daily?")
+        task_time = st.time_input("Scheduled time", value=None)
 
     if st.button("Add Task"):
+        from datetime import datetime, date
+        time_slot = None
+        if task_time:
+            today = date.today()
+            time_slot = datetime.combine(today, task_time)
         task = Task(
             name=task_name,
             task_type=task_type,
@@ -84,6 +90,8 @@ else:
             priority=priority,
             recurring=recurring,
             pet_name=selected_pet,
+            time_slot=time_slot,
+            due_date=date.today(),
         )
         for p in pets:
             if p.name == selected_pet:
@@ -105,14 +113,64 @@ st.divider()
 # --- Generate Schedule ---
 st.subheader("📅 Generate Daily Schedule")
 
+col1, col2 = st.columns(2)
+with col1:
+    sort_option = st.radio("Sort tasks by:", ["Priority (highest first)", "Time (earliest first)"])
+with col2:
+    filter_pet = st.selectbox("Filter by pet:", ["All Pets"] + [p.name for p in pets])
+
 if st.button("Generate Schedule"):
     scheduler = Scheduler(owner=st.session_state.owner)
     scheduler.generate_plan()
     st.session_state.scheduler = scheduler
 
-    explanation = scheduler.explain_plan()
-    st.text(explanation)
+    # Apply sorting
+    if sort_option == "Time (earliest first)":
+        scheduler.sort_by_time()
+    else:
+        scheduler.sort_by_priority()
 
+    # Apply filtering
+    if filter_pet != "All Pets":
+        filtered_tasks = scheduler.filter_tasks(pet_name=filter_pet)
+    else:
+        filtered_tasks = scheduler.tasks
+
+    # Show schedule as a table
+    if filtered_tasks:
+        st.success(f"✅ Schedule generated! {len(filtered_tasks)} tasks planned.")
+        table_data = []
+        for t in filtered_tasks:
+            time_str = t.time_slot.strftime("%H:%M") if t.time_slot else "Unscheduled"
+            table_data.append({
+                "Time": time_str,
+                "Task": t.name,
+                "Pet": t.pet_name,
+                "Type": t.task_type,
+                "Duration": f"{t.duration} min",
+                "Priority": "⭐" * t.priority,
+                "Recurring": "🔁" if t.recurring else "—",
+            })
+        st.table(table_data)
+    else:
+        st.info("No tasks to schedule.")
+
+    # Conflict warnings
     conflicts = scheduler.detect_conflicts()
     if conflicts:
-        st.warning(f"⚠️ {len(conflicts)} task conflicts detected!")
+        st.warning(f"⚠️ {len(conflicts)} task conflict(s) detected!")
+        for c in conflicts:
+            time_str = c.time_slot.strftime("%H:%M") if c.time_slot else "No time"
+            st.error(f"🔴 Conflict: {c.name} for {c.pet_name} at {time_str}")
+    else:
+        st.success("✅ No scheduling conflicts detected!")
+
+    # Show explanation
+    with st.expander("📝 Schedule Explanation"):
+        st.text(scheduler.explain_plan())
+
+    # Show total time usage
+    total_time = sum(t.duration for t in filtered_tasks)
+    available = st.session_state.owner.available_time
+    st.progress(min(total_time / available, 1.0))
+    st.caption(f"Time used: {total_time} / {available} minutes")

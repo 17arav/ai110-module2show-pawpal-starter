@@ -50,6 +50,29 @@ The tests cover:
 
 **Confidence Level: ⭐⭐⭐⭐ (4/5)** — The core scheduling logic is well-tested. With more time, I would add tests for edge cases like tasks with zero duration, extremely large task lists, and boundary conditions for available time.
 
+
+## Features
+
+- **Owner Management** — Create an owner profile with available time and preferences
+- **Pet Profiles** — Add multiple pets with name, species, age, and special needs
+- **Task Scheduling** — Add care tasks (walks, feeding, meds, grooming, enrichment) with time, duration, and priority
+- **Priority-Based Planning** — Scheduler sorts tasks by priority so critical care happens first
+- **Time-Based Sorting** — View tasks in chronological order by scheduled time
+- **Smart Filtering** — Filter tasks by pet name or completion status
+- **Recurring Tasks** — Daily tasks auto-generate for the next day when marked complete
+- **Conflict Detection** — Warns when tasks overlap in time
+- **Schedule Explanation** — Human-readable explanation of why tasks are ordered the way they are
+- **Time Usage Tracker** — Visual progress bar showing how much of available time is used
+
+## System Architecture
+
+![UML Diagram](uml_final.png)
+
+## 📸 Demo
+
+![PawPal+ App](demo.png)
+
+
 ## Getting started
 
 ### Setup
