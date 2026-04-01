@@ -61,13 +61,11 @@ These changes were made because Copilot pointed out that the original skeleton h
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+- I tested seven key behaviors: task completion toggling, task count after adding to a pet, sorting tasks by time (chronological order), sorting by priority (highest first), recurring task automation (new task created with next day's due date), conflict detection (overlapping time slots flagged), and scheduler handling pets with no tasks. These tests were important because they verify the core logic that makes PawPal+ reliable — if sorting or conflict detection breaks, the entire schedule becomes untrustworthy.
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+- I'm fairly confident (4 out of 5) that my scheduler works correctly for typical use cases. All 7 tests pass and cover the main features. If I had more time, I would test edge cases like tasks with zero duration, a very large number of tasks that exceed available time, tasks with no time slot during conflict detection, and boundary conditions where total task duration exactly equals available time.
 
 ---
 

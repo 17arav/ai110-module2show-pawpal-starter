@@ -32,6 +32,24 @@ PawPal+ includes several algorithmic features to make pet care planning intellig
 - **Recurring task automation** — When a recurring task (like a daily walk) is marked complete, a new task is automatically created for the next day.
 - **Conflict detection** — The scheduler detects overlapping tasks based on time slots and durations, and warns the user about scheduling conflicts.
 
+## Testing PawPal+
+
+Run the test suite with:
+```bash
+python -m pytest
+```
+
+The tests cover:
+- Task completion status changes correctly
+- Adding tasks increases pet's task count
+- Tasks sort chronologically by time slot
+- Tasks sort by priority (highest first)
+- Recurring tasks generate a new task with the next day's due date
+- Conflict detection flags overlapping time slots
+- Scheduler handles pets with no tasks without errors
+
+**Confidence Level: ⭐⭐⭐⭐ (4/5)** — The core scheduling logic is well-tested. With more time, I would add tests for edge cases like tasks with zero duration, extremely large task lists, and boundary conditions for available time.
+
 ## Getting started
 
 ### Setup
