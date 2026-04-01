@@ -67,9 +67,29 @@ class Task:
     due_date: Optional[date] = None
     completed: bool = False
 
-    def mark_complete(self) -> None:
-        """Mark this task as complete."""
+    def mark_complete(self) -> Optional[Task]:
+        """Mark this task as complete.
+
+        For recurring tasks, create and return the next occurrence with the due date
+        moved forward by one day. Non-recurring tasks are just marked complete.
+        """
         self.completed = True
+
+        if self.recurring:
+            next_due_date = self.due_date + timedelta(days=1) if self.due_date else None
+            return Task(
+                name=self.name,
+                task_type=self.task_type,
+                duration=self.duration,
+                priority=self.priority,
+                recurring=self.recurring,
+                pet_name=self.pet_name,
+                time_slot=None,
+                due_date=next_due_date,
+                completed=False,
+            )
+
+        return None
 
     def is_overdue(self) -> bool:
         """Return whether this task is overdue."""
@@ -135,6 +155,22 @@ class Scheduler:
     def sort_by_priority(self) -> None:
         """Sort tasks with highest priority first."""
         self.tasks.sort(key=lambda task: task.priority, reverse=True)
+
+    def sort_by_time(self) -> None:
+        """Sort tasks by their scheduled time slot.
+
+        Tasks without a time_slot are placed after scheduled tasks.
+        """
+        self.tasks.sort(key=lambda task: (task.time_slot is None, task.time_slot))
+
+    def filter_tasks(self, pet_name: Optional[str] = None, completed: Optional[bool] = None) -> List[Task]:
+        """Return tasks filtered by pet name and/or completion status."""
+        filtered = self.tasks
+        if pet_name is not None:
+            filtered = [task for task in filtered if task.pet_name == pet_name]
+        if completed is not None:
+            filtered = [task for task in filtered if task.completed == completed]
+        return filtered
 
     def explain_plan(self) -> str:
         """Return a human-readable explanation of the generated plan."""

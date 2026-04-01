@@ -22,6 +22,16 @@ Your final app should:
 - Display the plan clearly (and ideally explain the reasoning)
 - Include tests for the most important scheduling behaviors
 
+## Smarter Scheduling
+
+PawPal+ includes several algorithmic features to make pet care planning intelligent:
+
+- **Priority-based scheduling** — Tasks are sorted by priority so the most important care happens first. The scheduler fits as many tasks as possible within the owner's available time.
+- **Time-based sorting** — Tasks can be sorted chronologically by their scheduled time slot, with unscheduled tasks placed at the end.
+- **Filtering** — Tasks can be filtered by pet name or completion status to quickly find what matters.
+- **Recurring task automation** — When a recurring task (like a daily walk) is marked complete, a new task is automatically created for the next day.
+- **Conflict detection** — The scheduler detects overlapping tasks based on time slots and durations, and warns the user about scheduling conflicts.
+
 ## Getting started
 
 ### Setup

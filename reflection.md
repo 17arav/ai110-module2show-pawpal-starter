@@ -35,13 +35,11 @@ These changes were made because Copilot pointed out that the original skeleton h
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+- My scheduler considers three main constraints: time (owner's available minutes per day), priority (tasks with higher priority get scheduled first), and time slot conflicts (tasks shouldn't overlap). I decided priority mattered most because critical tasks like medications should always happen, even if it means skipping lower-priority tasks like grooming when time is limited.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+- One tradeoff my scheduler makes is that it checks for time conflicts using overlapping durations rather than just exact time matches. This is more accurate but means two tasks scheduled at 7:00 AM will always conflict even if the owner could handle them simultaneously (like feeding two pets at once). This tradeoff is reasonable because in most real-world scenarios, an owner can only focus on one pet care task at a time, so flagging overlaps helps them plan realistically.
 
 ---
 
