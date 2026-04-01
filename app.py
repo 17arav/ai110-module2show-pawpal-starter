@@ -6,8 +6,12 @@ st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 if "owner" not in st.session_state:
     st.session_state.owner = None
 
-if "scheduler" not in st.session_state:
-    st.session_state.scheduler = None
+import os
+
+# Auto-load saved data on startup
+if st.session_state.owner is None and os.path.exists("data.json"):
+    st.session_state.owner = Owner.load_from_json("data.json")
+    st.session_state.scheduler = Scheduler(owner=st.session_state.owner)
     
 
 st.title("🐾 PawPal+")
@@ -24,6 +28,7 @@ with col2:
 if st.button("Create Owner"):
     st.session_state.owner = Owner(name=owner_name, available_time=available_time)
     st.session_state.scheduler = Scheduler(owner=st.session_state.owner)
+    st.session_state.owner.save_to_json("data.json")
     st.success(f"Owner '{owner_name}' created with {available_time} minutes available!")
 
 if st.session_state.owner is None:
@@ -48,6 +53,7 @@ if st.button("Add Pet"):
     pet = Pet(name=pet_name, species=species, age=age, special_needs=special_needs)
     st.session_state.owner.add_pet(pet)
     st.success(f"Added {pet_name} the {species}!")
+    st.session_state.owner.save_to_json("data.json")
 
 # Show current pets
 pets = st.session_state.owner.get_pets()
@@ -97,6 +103,7 @@ else:
             if p.name == selected_pet:
                 p.add_task(task)
                 st.success(f"Added '{task_name}' for {selected_pet}!")
+                st.session_state.owner.save_to_json("data.json")
                 break
 
     # Show tasks per pet
@@ -109,6 +116,19 @@ else:
                 st.write(f"  {status} {t.name} ({t.task_type}, {t.duration}min, priority {t.priority})")
 
 st.divider()
+
+# Find next available slot
+st.subheader("🔍 Find Next Available Slot")
+slot_duration = st.number_input("Task duration (minutes)", min_value=5, max_value=240, value=30, key="slot_duration")
+if st.button("Find Slot"):
+    if st.session_state.scheduler is None:
+        st.error("Generate a schedule first!")
+    else:
+        next_slot = st.session_state.scheduler.find_next_available_slot(slot_duration)
+        if next_slot:
+            st.success(f"✅ Next available slot: {next_slot.strftime('%H:%M')} for {slot_duration} minutes")
+        else:
+            st.error("❌ No available slot found for that duration today.")
 
 # --- Generate Schedule ---
 st.subheader("📅 Generate Daily Schedule")
@@ -142,13 +162,30 @@ if st.button("Generate Schedule"):
         table_data = []
         for t in filtered_tasks:
             time_str = t.time_slot.strftime("%H:%M") if t.time_slot else "Unscheduled"
+            if t.priority >= 4:
+                priority_label = "🔴 High"
+            elif t.priority >= 2:
+                priority_label = "🟡 Medium"
+            else:
+                priority_label = "🟢 Low"
+            
+            type_emojis = {
+                "walk": "🚶 Walk",
+                "feeding": "🍽️ Feeding",
+                "meds": "💊 Meds",
+                "grooming": "✂️ Grooming",
+                "enrichment": "🎾 Enrichment",
+                "other": "📌 Other",
+            }
+            task_type_display = type_emojis.get(t.task_type, t.task_type)
+
             table_data.append({
                 "Time": time_str,
                 "Task": t.name,
                 "Pet": t.pet_name,
-                "Type": t.task_type,
+                "Type": task_type_display,
                 "Duration": f"{t.duration} min",
-                "Priority": "⭐" * t.priority,
+                "Priority": priority_label,
                 "Recurring": "🔁" if t.recurring else "—",
             })
         st.table(table_data)

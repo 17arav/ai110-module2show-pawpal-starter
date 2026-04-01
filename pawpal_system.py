@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime, date, timedelta
-from typing import Dict, List, Optional
+import json
+from typing import Any, Dict, List, Optional
 
 
 class Owner:
@@ -28,6 +29,38 @@ class Owner:
         """Return the list of pets owned by this owner."""
         return list(self._pets)
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize the owner and all pets to a dictionary."""
+        return {
+            "name": self.name,
+            "available_time": self.available_time,
+            "preferences": self.preferences,
+            "pets": [pet.to_dict() for pet in self._pets],
+        }
+
+    def save_to_json(self, filepath: str) -> None:
+        """Save the owner, pets, and tasks to a JSON file."""
+        with open(filepath, "w", encoding="utf-8") as file:
+            json.dump(self.to_dict(), file, indent=2)
+
+    @classmethod
+    def load_from_json(cls, filepath: str) -> "Owner":
+        """Load an Owner and all nested pets/tasks from a JSON file."""
+        with open(filepath, "r", encoding="utf-8") as file:
+            data = json.load(file)
+
+        owner = cls(
+            name=data["name"],
+            available_time=data["available_time"],
+            preferences=data.get("preferences", []),
+        )
+
+        for pet_data in data.get("pets", []):
+            pet = Pet.from_dict(pet_data)
+            owner.add_pet(pet)
+
+        return owner
+
 
 @dataclass
 class Pet:
@@ -51,6 +84,31 @@ class Pet:
     def get_tasks(self) -> List[Task]:
         """Return the list of tasks assigned to this pet."""
         return list(self.tasks)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize this pet to a dictionary."""
+        return {
+            "name": self.name,
+            "species": self.species,
+            "age": self.age,
+            "special_needs": self.special_needs,
+            "tasks": [task.to_dict() for task in self.tasks],
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Pet":
+        """Deserialize a pet and its tasks from a dictionary."""
+        pet = cls(
+            name=data["name"],
+            species=data["species"],
+            age=data["age"],
+            special_needs=data.get("special_needs", ""),
+        )
+
+        for task_data in data.get("tasks", []):
+            pet.add_task(Task.from_dict(task_data))
+
+        return pet
 
 
 @dataclass
@@ -96,6 +154,35 @@ class Task:
         if self.completed or self.due_date is None:
             return False
         return date.today() > self.due_date
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serialize the task to a dictionary."""
+        return {
+            "name": self.name,
+            "task_type": self.task_type,
+            "duration": self.duration,
+            "priority": self.priority,
+            "recurring": self.recurring,
+            "pet_name": self.pet_name,
+            "time_slot": self.time_slot.isoformat() if self.time_slot else None,
+            "due_date": self.due_date.isoformat() if self.due_date else None,
+            "completed": self.completed,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "Task":
+        """Deserialize a task from a dictionary."""
+        return cls(
+            name=data["name"],
+            task_type=data["task_type"],
+            duration=data["duration"],
+            priority=data["priority"],
+            recurring=data["recurring"],
+            pet_name=data["pet_name"],
+            time_slot=datetime.fromisoformat(data["time_slot"]) if data.get("time_slot") else None,
+            due_date=date.fromisoformat(data["due_date"]) if data.get("due_date") else None,
+            completed=data.get("completed", False),
+        )
 
 
 class Scheduler:
@@ -151,6 +238,39 @@ class Scheduler:
                         conflicts.append(task_b)
 
         return conflicts
+
+    def find_next_available_slot(self, duration: int) -> Optional[datetime]:
+        """Find the next available slot between 8:00 AM and 8:00 PM for a given duration."""
+        if duration <= 0:
+            return None
+
+        day_start = datetime.combine(self.planning_date, datetime.min.time()).replace(hour=8, minute=0)
+        day_end = datetime.combine(self.planning_date, datetime.min.time()).replace(hour=20, minute=0)
+
+        scheduled = [
+            task
+            for tasks in self.daily_plan.values()
+            for task in tasks
+            if task.time_slot is not None
+        ]
+
+        if not scheduled:
+            return day_start if day_start + timedelta(minutes=duration) <= day_end else None
+
+        scheduled.sort(key=lambda task: task.time_slot)
+        candidate = day_start
+
+        for task in scheduled:
+            task_start = task.time_slot
+            task_end = task_start + timedelta(minutes=task.duration)
+
+            if candidate + timedelta(minutes=duration) <= task_start:
+                return candidate
+
+            if task_end > candidate:
+                candidate = task_end
+
+        return candidate if candidate + timedelta(minutes=duration) <= day_end else None
 
     def sort_by_priority(self) -> None:
         """Sort tasks with highest priority first."""

@@ -72,6 +72,16 @@ The tests cover:
 
 ![PawPal+ App](demo.png)
 
+## Stretch Features
+
+- **Challenge 1: Next Available Slot Finder** — Added a `find_next_available_slot()` method to the Scheduler that scans gaps between scheduled tasks (8 AM to 8 PM) and returns the earliest time that fits a task of a given duration. Implemented using Agent Mode in Copilot.
+
+- **Challenge 2: Data Persistence** — Added `save_to_json()` and `load_from_json()` methods to the Owner class. All pets and tasks are saved to `data.json` automatically, so data persists between app restarts.
+
+- **Challenge 3: Color-Coded Priority Scheduling** — Tasks in the schedule table are labeled with colored indicators: 🔴 High (priority 4-5), 🟡 Medium (priority 2-3), 🟢 Low (priority 1).
+
+- **Challenge 4: Professional UI with Emojis** — Task types display with emojis (🚶 Walk, 🍽️ Feeding, 💊 Meds, ✂️ Grooming, 🎾 Enrichment) for better readability. Schedule includes a progress bar showing time usage, conflict warnings, and expandable explanations.
+
 
 ## Getting started
 
