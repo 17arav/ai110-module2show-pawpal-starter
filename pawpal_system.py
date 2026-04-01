@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime, date
+from datetime import datetime, date, timedelta
 from typing import Dict, List, Optional
 
 
@@ -9,6 +9,7 @@ class Owner:
     """Represents a pet owner and their care preferences."""
 
     def __init__(self, name: str, available_time: int, preferences: List[str] | None = None) -> None:
+        """Initialize a pet owner with availability and preferences."""
         self.name = name
         self.available_time = available_time
         self.preferences = preferences or []
@@ -81,6 +82,7 @@ class Scheduler:
     """Generates and explains a pet care plan for an owner."""
 
     def __init__(self, owner: Owner, tasks: List[Task] | None = None, planning_date: Optional[date] = None) -> None:
+        """Initialize the scheduler with an owner and optional tasks."""
         self.owner = owner
         self.tasks = tasks or []
         self.planning_date = planning_date or date.today()
@@ -89,16 +91,85 @@ class Scheduler:
     def generate_plan(self) -> None:
         """Generate a daily care plan based on owner availability and tasks."""
         self.tasks = [task for pet in self.owner.get_pets() for task in pet.get_tasks()]
+        self.sort_by_priority()
+
         self.daily_plan = {}
+        remaining_time = self.owner.available_time
+        total_scheduled = 0
+
+        for task in self.tasks:
+            if task.duration <= 0:
+                continue
+
+            if total_scheduled + task.duration > self.owner.available_time:
+                break
+
+            self.daily_plan.setdefault(task.pet_name, []).append(task)
+            total_scheduled += task.duration
+            remaining_time = self.owner.available_time - total_scheduled
 
     def detect_conflicts(self) -> List[Task]:
         """Detect scheduling conflicts within the current plan."""
-        return []
+        conflicts: List[Task] = []
+        scheduled_tasks = [task for tasks in self.daily_plan.values() for task in tasks]
+
+        for i, task_a in enumerate(scheduled_tasks):
+            if task_a.time_slot is None:
+                continue
+            end_a = task_a.time_slot + timedelta(minutes=task_a.duration)
+
+            for task_b in scheduled_tasks[i + 1 :]:
+                if task_b.time_slot is None:
+                    continue
+                start_b = task_b.time_slot
+                end_b = task_b.time_slot + timedelta(minutes=task_b.duration)
+
+                if task_a.time_slot < end_b and start_b < end_a:
+                    if task_a not in conflicts:
+                        conflicts.append(task_a)
+                    if task_b not in conflicts:
+                        conflicts.append(task_b)
+
+        return conflicts
 
     def sort_by_priority(self) -> None:
-        """Sort tasks by priority for planning."""
+        """Sort tasks with highest priority first."""
         self.tasks.sort(key=lambda task: task.priority, reverse=True)
 
     def explain_plan(self) -> str:
         """Return a human-readable explanation of the generated plan."""
-        return ""
+        if not self.daily_plan:
+            return (
+                f"No tasks are currently scheduled for {self.owner.name} on {self.planning_date}. "
+                "Use generate_plan() to create a plan from your pets' tasks."
+            )
+
+        lines = [
+            f"Daily plan for {self.owner.name} on {self.planning_date}:"
+        ]
+
+        total_duration = 0
+        for pet_name, tasks in self.daily_plan.items():
+            lines.append(f"\n{pet_name}:")
+            for index, task in enumerate(tasks, start=1):
+                time_str = task.time_slot.isoformat() if task.time_slot else "unscheduled time"
+                lines.append(
+                    f"  {index}. {task.name} ({task.task_type}, priority {task.priority}) at {time_str}"
+                )
+                total_duration += task.duration
+
+        lines.append(
+            f"\nTasks are ordered by priority so the most important care happens first. "
+            f"The schedule fits within {self.owner.name}'s available time of {self.owner.available_time} minutes."
+        )
+        lines.append(f"Total scheduled duration: {total_duration} minutes.")
+
+        conflicts = self.detect_conflicts()
+        if conflicts:
+            lines.append("\nWarning: some tasks overlap in time_slot and may conflict:")
+            for task in conflicts:
+                lines.append(f"  - {task.name} for {task.pet_name} at {task.time_slot}")
+        else:
+            lines.append("\nNo detected task time conflicts.")
+
+        return "\n".join(lines)
